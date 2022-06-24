@@ -1,6 +1,14 @@
 """Utilities for the Spot It application."""
 import cmath
 import random
+from glob import iglob
+from os.path import abspath, join
+from typing import Iterable, TypeVar
+
+from PIL import Image
+
+T = TypeVar("T")
+S = TypeVar("S")
 
 
 def get_random_pos(
@@ -18,3 +26,19 @@ def get_random_pos(
         int(complex_center.imag) + plane_center[1],
     )
     return (center[0] - this_radius, center[1] - this_radius)
+
+
+def create_mapping(seq1: Iterable[T], seq2: Iterable[S]) -> dict[T, S]:
+    """Create a mapping between to sequences of possibly different types."""
+    return dict(zip(seq1, seq2))
+
+
+def get_images(directory: str) -> list[Image.Image]:
+    """
+    Return a list of all PNGs in a directory.
+    """
+    images = []
+    directory = abspath(directory)
+    for file in iglob("*.png", root_dir=directory):
+        images.append(Image.open(join(directory, file)))
+    return images
