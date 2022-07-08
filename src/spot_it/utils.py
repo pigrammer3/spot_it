@@ -1,6 +1,8 @@
 """Utilities for the Spot It application."""
 import cmath
+import math
 import random
+from dataclasses import dataclass
 from glob import iglob
 from os.path import abspath, join
 from typing import Iterable, TypeVar
@@ -18,10 +20,25 @@ def get_random_pos(
     Get a random position for the upper left of a circle with radius `this_radius` within a circle
     with radius `within_radius`.
     """
-    radius = random.randrange(within_radius - this_radius - 20)
+    radius = math.sqrt(random.random()) * (within_radius - this_radius - within_radius / 40)
     theta = random.randrange(360)
     center = cmath.rect(radius, theta) + plane_center
-    return center - radius * (1 + 1j)
+    return center - this_radius * (1 + 1j)
+
+
+@dataclass
+class PlacedImage:
+    """Represents an image which has been placed."""
+
+    center: complex
+    radius: int
+
+    def __sub__(self, other: "PlacedImage") -> float:
+        return abs(self.center - other.center) - self.radius - other.radius
+
+    def dont_overlap(self, other: "PlacedImage") -> bool:
+        """Check if two placed images don't overlap"""
+        return (self - other) >= 0
 
 
 def create_mapping(seq1: Iterable[T], seq2: Iterable[S]) -> dict[T, S]:

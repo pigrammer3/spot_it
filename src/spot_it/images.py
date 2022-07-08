@@ -4,7 +4,7 @@ import random
 
 from PIL import Image, ImageDraw
 
-from .utils import get_random_pos, to_complex, to_int_tuple
+from .utils import get_random_pos, to_complex, to_int_tuple, PlacedImage
 
 CIRCLE_SCALE = 4
 BACKGROUND = (255, 255, 255, 0)
@@ -51,23 +51,11 @@ def crop_to_square(image: Image.Image) -> Image.Image:
     This is useful because we want to minimize extra space in the spot-it card.
     If this is impossible, return the image cropped to a square.
     """
-    center = to_complex(image.size) / 2
-    image_copy = image.copy()
-    circle_draw = ImageDraw.Draw(image_copy)
-    for radius in range(
-        CROP_PERCISION, min(*image.size) + CROP_PERCISION, CROP_PERCISION
-    ):
-        circle_draw.ellipse(
-            [
-                to_int_tuple(center - radius * (1 + 1j)),
-                to_int_tuple(center + radius * (1 + 1j)),
-            ],
-            BACKGROUND,
-            BACKGROUND,
-            1,
-        )
-        if image_copy.getcolors() is not None and len(image_copy.getcolors()) == 1:
-            break
+    bbox = image.getbbox()
+    upper_left = to_complex((bbox[0], bbox[1]))
+    lower_right = to_complex((bbox[2], bbox[3]))
+    radius = math.ceil(abs((upper_left - lower_right) / 2))
+    center = (upper_left + lower_right) / 2
     return image.crop(
         (
             *to_int_tuple(center - radius * (1 + 1j)),
@@ -80,26 +68,27 @@ def spot_it_card(images: list[Image.Image], size: int) -> Image.Image:
     """Generate a Spot It! card from a list of images."""
     card = get_circle(size)
     reset = 0
+    placed_images: list[PlacedImage] = []
     for image in images:
         paste = crop_to_square(randomize_image(image, size))
-        diameter = paste.size[0]
+        radius = math.ceil(paste.size[0] / 2)
         counter = 0
         while pos := get_random_pos(
             int(CIRCLE_SCALE / 2 * size),
-            int(diameter / 2),
+            radius,
             to_complex(card.size) / 2,
         ):
             if counter >= 10:
                 counter = 0
                 paste = crop_to_square(randomize_image(image, size))
+                radius = math.ceil(paste.size[0] / 2)
                 reset += 1
-            if reset >= 100:
+            if reset >= 10:
                 return spot_it_card(images, size)
-            cropped = card.crop(
-                (*to_int_tuple(pos), to_int_tuple(pos + to_complex(paste.size)))
-            )
             counter += 1
-            if Image.composite(cropped, cropped, paste).getbbox() is None:
+            placed = PlacedImage(pos + radius * (1 + 1j), radius)
+            if all(map(placed.dont_overlap, placed_images)):
                 card.paste(paste, to_int_tuple(pos), paste)
+                placed_images.append(placed)
                 break
     return card
