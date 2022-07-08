@@ -13,13 +13,6 @@ RANDOM_PERCISION = 30
 CROP_PERCISION = 10
 
 
-def get_max_dimension(images: list[Image.Image]) -> int:
-    """Get the maximum dimension among a set of images."""
-    return max(
-        *(image.size[0] for image in images), *(image.size[1] for image in images)
-    )
-
-
 def get_circle(size: int) -> Image.Image:
     """Get a circle in black for the max dimension given."""
     image = Image.new("RGBA", (CIRCLE_SCALE * size,) * 2, BACKGROUND)
