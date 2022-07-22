@@ -20,7 +20,7 @@ def get_random_pos(
     Get a random position for the upper left of a circle with radius `this_radius` within a circle
     with radius `within_radius`.
     """
-    radius = math.sqrt(random.random()) * (within_radius - this_radius - within_radius / 40)
+    radius = math.sqrt(random.random()) * (within_radius - this_radius - within_radius / 10)
     theta = random.randrange(360)
     center = cmath.rect(radius, theta) + plane_center
     return center - this_radius * (1 + 1j)
