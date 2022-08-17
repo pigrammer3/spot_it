@@ -1,4 +1,4 @@
 """__main__"""
 from . import spot_it
 
-spot_it.main()
+spot_it.deck()
