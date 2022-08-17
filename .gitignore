@@ -2,3 +2,4 @@ images/*.png
 output/*.png
 __pycache__
 .mypy_cache
+*.profile
