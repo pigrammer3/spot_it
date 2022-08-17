@@ -1,4 +1,5 @@
 """The main Spot It! generator module."""
+import threading
 from typing import Generator
 
 from PIL import Image
@@ -10,18 +11,28 @@ DIRECTORY = "images"
 OUTPUT_DIR = "output"
 
 
+def save_image(image: Image.Image, name: str):
+    """Save an image to filename"""
+    image.save(name)
+
+
 def deck():
     """main()"""
     list_of_images = utils.get_images(DIRECTORY)
     order = projective_plane.get_order(len(list_of_images))
     mapping = utils.create_mapping(projective_plane.all_points(order), list_of_images)
     lines = projective_plane.all_lines(order)
+    threads: list[threading.Thread] = []
     for num, line in enumerate(
-        tqdm(lines, desc="Making card", total=len(list_of_images)), start=1
+        tqdm(lines, desc="Making cards", total=len(list_of_images)), start=1
     ):
         line_images = list(map(mapping.get, line))
         card = images.spot_it_card(line_images, 500)
-        card.save(f"{OUTPUT_DIR}/{num}.png")
+        thread = threading.Thread(target=save_image, args=(card, f"{OUTPUT_DIR}/{num}.png"))
+        thread.start()
+        threads.append(thread)
+    for thread in tqdm(threads, desc="Saving cards", total=len(threads)):
+        thread.join()
 
 
 def deck_generator(
