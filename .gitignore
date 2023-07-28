@@ -3,3 +3,5 @@ output/*.png
 __pycache__
 .mypy_cache
 *.profile
+build/
+src/spot_it.egg-info/
