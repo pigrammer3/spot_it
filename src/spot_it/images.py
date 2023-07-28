@@ -29,22 +29,6 @@ def get_circle(size: int) -> Image.Image:
     return image
 
 
-# def randomize_image(image: Image.Image, size: int) -> Image.Image:
-#     """Randomize the scale and rotation of the image, to use as a spot-it symbol."""
-#     image_max_dimension = max(*image.size)
-#     scale = (
-#         size
-#         * (
-#             random.randint(int(3 * RANDOM_PERCISION / 5), int(7 * RANDOM_PERCISION / 5))
-#             / RANDOM_PERCISION
-#         )
-#     ) / image_max_dimension
-
-#     resized = image.resize(to_int_tuple(to_complex(image.size) * scale))
-#     rotated = resized.rotate(random.randrange(360), expand=True, fillcolor=BACKGROUND)
-#     return rotated
-
-
 def make_image_random(image: Image.Image, info: RandomizeImageInfo) -> Image.Image:
     """Randomize the scale and rotation of the image, to use as a spot-it symbol."""
     dimensions = to_complex(image.size)
@@ -54,27 +38,6 @@ def make_image_random(image: Image.Image, info: RandomizeImageInfo) -> Image.Ima
     resized = image.resize(to_int_tuple(dimensions * scale))
     rotated = resized.rotate(info.rotation, expand=True, fillcolor=BACKGROUND)
     return rotated
-
-
-# def crop_to_square(image: Image.Image) -> Image.Image:
-#     """
-#     Crop the image such that it is a square whose inscribed circle contains everything in the
-#     image.
-
-#     This is useful because we want to minimize extra space in the spot-it card.
-#     If this is impossible, return the image cropped to a square.
-#     """
-#     bbox = image.getbbox()
-#     upper_left = to_complex((bbox[0], bbox[1]))
-#     lower_right = to_complex((bbox[2], bbox[3]))
-#     radius = math.ceil(abs((upper_left - lower_right) / 2))
-#     center = (upper_left + lower_right) / 2
-#     return image.crop(
-#         (
-#             *to_int_tuple(center - radius * (1 + 1j)),
-#             *to_int_tuple(center + radius * (1 + 1j)),
-#         )
-#     )
 
 
 def crop_to_minimum(image: Image.Image) -> Image.Image:

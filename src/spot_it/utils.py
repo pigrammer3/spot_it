@@ -1,7 +1,4 @@
 """Utilities for the Spot It application."""
-import cmath
-import math
-import random
 from dataclasses import dataclass
 from glob import iglob
 from os.path import abspath, join
@@ -11,19 +8,6 @@ from PIL import Image
 
 T = TypeVar("T")
 S = TypeVar("S")
-
-
-def get_random_pos(
-    within_radius: int, this_radius: int, plane_center: complex
-) -> complex:
-    """
-    Get a random position for the upper left of a circle with radius `this_radius` within a circle
-    with radius `within_radius`.
-    """
-    radius = math.sqrt(random.random()) * (within_radius - this_radius - within_radius / 10)
-    theta = random.randrange(360)
-    center = cmath.rect(radius, theta) + plane_center
-    return center - this_radius * (1 + 1j)
 
 
 @dataclass
