@@ -5,3 +5,4 @@ __pycache__
 *.profile
 build/
 src/spot_it.egg-info/
+.coverage
