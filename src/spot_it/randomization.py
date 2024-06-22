@@ -3,6 +3,7 @@
 import cmath
 import math
 import random
+import functools
 from typing import Union
 
 from .utils import FloatRange
@@ -16,32 +17,53 @@ class RandomizeImageInfo:
     center: complex
     radius: float
     already_placed: list["RandomizeImageInfo"]
+    exists: bool
 
-    def __init__(
-        self, size: int, already_placed: list["RandomizeImageInfo"]
-    ) -> None:
+    def __init__(self, size: int, already_placed: list["RandomizeImageInfo"]) -> None:
+        self.center = None
         self.size = size
         self.already_placed = already_placed
-        self.rotation = random.randrange(360)
-        # Pick a radius between 2/5 and 5/5 of size so that the side lengths of the image will be
-        # approximately between 3/5 and 7/5 of size.
-        self.radius = ((random.random() * 3 / 5) + 2 / 5) * self.size
-        self.center = self.get_random_pos()
+        counter = 0
+        while self.center is None:
+            if counter >= 10:
+                self.exists = False
+                break
+            self.rotation = random.randrange(360)
+            # Pick a radius between 2/5 and 5/5 of size so that the side lengths of the image will be
+            # approximately between 3/5 and 7/5 of size.
+            self.radius = ((random.random() * 3 / 5) + 1 / 5) * self.size
+            self.center = self.get_random_pos()
+            counter += 1
+        else:
+            self.exists = True
 
     def get_random_pos(
         self,
-    ) -> complex:
+    ) -> complex | None:
         """
         Get a random position for the upper left of a circle with radius `self.radius` within a
         circle with radius `self.size * 2`.
         """
-        radius = math.sqrt(random.random()) * (
-            self.size * 2 - self.radius - (self.size * 2) / 10
-        )
-        theta = random.randrange(360)
-        # Convert to rectangular coordinates and then to origin at upper left instead of
-        # origin at center.
-        center = cmath.rect(radius, theta) + self.size * (2 + 2j)
+        theta = random.random() * 2 * math.pi
+        if self.already_placed:
+            no_radius_range = functools.reduce(
+                FloatRange.__add__,
+                map(
+                    lambda placed: placed.get_not_allowable(theta).with_buffer(
+                        self.radius + self.size / 10  # buffer between two images
+                    ),
+                    self.already_placed,
+                ),
+            )
+            radius_range = (
+                FloatRange((0, self.size * 9 / 10 - self.radius)) - no_radius_range
+            )
+            if not radius_range:
+                return None
+            radius = radius_range.random()
+        else:
+            radius = random.random() * (self.size * 9 / 10 - self.radius)
+        center = cmath.rect(radius, theta)
         return center
 
     def __sub__(

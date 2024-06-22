@@ -1,4 +1,5 @@
 """Image manipulation for Spot-It!"""
+
 import math
 
 # import random
@@ -8,7 +9,6 @@ from PIL import Image, ImageDraw
 from .randomization import RandomizeImageInfo
 from .utils import to_complex, to_int_tuple  # PlacedImage, get_random_pos,
 
-CIRCLE_SCALE = 4
 BACKGROUND = (255, 255, 255, 0)
 CIRCLE_OUTLINE = (0, 0, 0, 255)
 # RANDOM_PERCISION = 30
@@ -17,11 +17,11 @@ CIRCLE_OUTLINE = (0, 0, 0, 255)
 
 def get_circle(size: int) -> Image.Image:
     """Get a circle in black for the max dimension given."""
-    image = Image.new("RGBA", (CIRCLE_SCALE * size,) * 2, BACKGROUND)
+    image = Image.new("RGBA", (2 * size,) * 2, BACKGROUND)
     draw = ImageDraw.Draw(image)
 
     draw.ellipse(
-        [(0, 0), (CIRCLE_SCALE * size,) * 2],
+        [(0, 0), (2 * size,) * 2],
         BACKGROUND,
         CIRCLE_OUTLINE,
         math.ceil(size / 100),
@@ -55,7 +55,9 @@ def spot_it_card(images: list[Image.Image], size: int) -> Image.Image:
             placed_info = list(map(lambda item: item[1], placed_images))
             random_info = RandomizeImageInfo(size, placed_info)
             counter = 0
-            while not all(map(random_info.dont_overlap, placed_info)):
+            while not random_info.exists or not all(
+                map(random_info.dont_overlap, placed_info)
+            ):
                 # If we've done this ten times, it must be a difficult card. Start over.
                 if counter >= 10:
                     break
@@ -68,9 +70,15 @@ def spot_it_card(images: list[Image.Image], size: int) -> Image.Image:
     # Wait to preform image manipulation until the end to increase performance.
     for image, info in placed_images:
         randomized = make_image_random(image, info)
+        location = to_int_tuple(
+            info.center.real
+            - info.center.imag * 1j
+            + (1 + 1j) * size
+            - to_complex(randomized.size) / 2
+        )
         card.paste(
             randomized,
-            to_int_tuple(info.center - to_complex(randomized.size) / 2),
+            location,
             randomized,
         )
     return card

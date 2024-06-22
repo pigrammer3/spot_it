@@ -32,7 +32,7 @@ def deck():
 
 
 def deck_generator(
-    list_of_images: list[Image.Image], resolution=500
+    list_of_images: list[Image.Image], resolution=1000
 ) -> Generator[tuple[Image.Image, list[Image.Image]], None, None]:
     """
     Generate deck using a generator, no file IO.
