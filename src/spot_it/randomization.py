@@ -1,8 +1,11 @@
 """Randomization for Spot-It!"""
+
 import cmath
 import math
 import random
 from typing import Union
+
+from .utils import FloatRange
 
 
 class RandomizeImageInfo:
@@ -60,3 +63,26 @@ class RandomizeImageInfo:
             f"{self.__class__.__name__}(size={self.size}, rotation={self.rotation},"
             f"radius={self.radius}, center={self.center})"
         )
+
+    def get_not_allowable(self, theta: float) -> FloatRange:
+        center_theta = cmath.phase(self.center)
+        over_center = True
+        if self.radius <= abs(self.center):
+            over_center = False
+            angle_delta = math.asin(self.radius / abs(self.center))
+            if not center_theta - angle_delta <= theta <= center_theta + angle_delta:
+                return FloatRange()
+        angle_a = abs(center_theta - theta)
+        # sin(angle_a) / radius = sin(angle_b) / abs(self.center)
+        sines_ratio = math.sin(angle_a) / self.radius
+        angle_b = math.asin(sines_ratio * abs(self.center))
+        angle_c = math.pi - angle_a - angle_b
+        if over_center:
+            side_c = math.sin(angle_c) / sines_ratio
+            return FloatRange((self.radius, side_c))
+        # alt_angle_b = pi - angle_b
+        # alt_angle_c = pi - angle_a - alt_angle_b = -angle_a + angle_b
+        alt_angle_c = angle_b - angle_a
+        side_c = math.sin(angle_c) / sines_ratio
+        alt_side_c = math.sin(alt_angle_c) / sines_ratio
+        return FloatRange((min(side_c, alt_side_c), max(side_c, alt_side_c))) 
