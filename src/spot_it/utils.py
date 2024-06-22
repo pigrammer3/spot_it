@@ -25,7 +25,7 @@ def get_images(directory: str) -> list[Image.Image]:
     images = []
     directory = abspath(directory)
     for file in iglob("*.png", root_dir=directory):
-        images.append(Image.open(join(directory, file)))
+        images.append(Image.open(join(directory, file)).convert("RGBA"))
     return images
 
 
