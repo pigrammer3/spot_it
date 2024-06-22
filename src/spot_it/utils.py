@@ -40,6 +40,9 @@ def to_complex(ints: tuple[int, int]) -> complex:
 
 
 class FloatRange:
+    """
+    A class to represent a set of ranges of floats.
+    """
 
     ranges: list[tuple[float, float]]
 
@@ -63,6 +66,12 @@ class FloatRange:
         return self
 
     def random(self) -> float:
+        """
+        Generate a random float value within the specified ranges.
+
+        Returns:
+            A random float value within the specified ranges.
+        """
         total_length = sum(upper - lower for lower, upper in self.ranges)
         random_value = random.random() * total_length
         for lower, upper in self.ranges:
@@ -72,6 +81,15 @@ class FloatRange:
         return self.ranges[-1][1]
 
     def with_buffer(self, buffer: float) -> "FloatRange":
+        """
+        Add a buffer to every range.
+
+        Args:
+            buffer: The buffer to add to the ranges.
+
+        Returns:
+            A new FloatRange object with the buffer added to every range.
+        """
         return FloatRange(
             *((lower - buffer, upper + buffer) for lower, upper in self.ranges)
         )
@@ -82,12 +100,30 @@ class FloatRange:
                 return True
         return False
 
-    def __add__(self, other: typing.Self | tuple) -> "FloatRange":
+    def __add__(self, other: typing.Self | tuple[float, float]) -> "FloatRange":
+        """
+        Return the union of two FloatRanges.
+
+        Args:
+            other: The other FloatRange or a tuple representing a single range.
+
+        Returns:
+            A new FloatRange object representing the union of the two FloatRanges.
+        """
         if isinstance(other, tuple):
             return FloatRange(*self.ranges, other)
         return FloatRange(*self.ranges, *other.ranges)
 
-    def __sub__(self, other: tuple[int, int] | typing.Self) -> "FloatRange":
+    def __sub__(self, other: tuple[float, float] | typing.Self) -> "FloatRange":
+        """
+        "Subtract" another FloatRange or a tuple from this FloatRange; that is, remove the parts that overlap.
+
+        Args:
+            other: The other FloatRange or a tuple representing a single range.
+
+        Returns:
+            The FloatRange object which is the subtraction (?) of the two FloatRanges.
+        """
         if isinstance(other, tuple):
             result_ranges = []
             lower, upper = other
@@ -107,9 +143,21 @@ class FloatRange:
         return functools.reduce(FloatRange.__sub__, other.ranges, self)
 
     def __or__(self, other: typing.Self | tuple) -> "FloatRange":
+        """
+        See __add__.
+        """
         return self + other
 
     def intersection(self, other: "FloatRange") -> "FloatRange":
+        """
+        Return the intersection of two FloatRanges.
+
+        Args:
+            other: The other FloatRange.
+
+        Returns:
+            A new FloatRange object representing the intersection of the two FloatRanges.
+        """
         result_ranges = []
         for lower, upper in self.ranges:
             for other_lower, other_upper in other.ranges:
@@ -124,6 +172,9 @@ class FloatRange:
         return FloatRange(*result_ranges)
 
     def __and__(self, other: "FloatRange") -> "FloatRange":
+        """
+        See intersection.
+        """
         return self.intersection(other)
 
     def __repr__(self) -> str:
