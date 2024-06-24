@@ -6,7 +6,7 @@ import pathlib
 from PIL import Image
 from tqdm import tqdm
 
-from . import images, projective_plane, utils
+from . import images, projective_plane, utils, pdfs
 
 DIRECTORY = pathlib.Path("images")
 OUTPUT_DIR = pathlib.Path("output")
@@ -22,16 +22,19 @@ def deck():
     list_of_images = utils.get_images(DIRECTORY)
     threads: list[threading.Thread] = []
     generated_deck = deck_generator(list_of_images)
-    for file in [*OUTPUT_DIR.glob("*.png"), *OUTPUT_DIR.glob("*.pdf")]:
+    cards: list[Image.Image] = []
+    for file in tqdm([*OUTPUT_DIR.glob("*.png"), *OUTPUT_DIR.glob("*.pdf")], desc="Cleaning old"):
         file.unlink()
     for num, card in enumerate(
         tqdm(generated_deck, desc="Making cards", total=len(list_of_images)), start=1
     ):
+        cards.append(card[0])
         thread = threading.Thread(target=save_image, args=(card[0], OUTPUT_DIR / f"{num}.png"))
         thread.start()
         threads.append(thread)
     for thread in tqdm(threads, desc="Saving cards", total=len(threads)):
         thread.join()
+    pdfs.put_on_pdf(cards, OUTPUT_DIR / "cards.pdf")
 
 
 def deck_generator(
