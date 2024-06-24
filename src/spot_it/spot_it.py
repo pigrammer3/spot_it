@@ -1,4 +1,5 @@
 """The main Spot It! generator module."""
+
 import threading
 from typing import Generator
 import pathlib
@@ -23,13 +24,22 @@ def deck():
     threads: list[threading.Thread] = []
     generated_deck = deck_generator(list_of_images)
     cards: list[Image.Image] = []
-    for file in tqdm([*OUTPUT_DIR.glob("*.png"), *OUTPUT_DIR.glob("*.pdf")], desc="Cleaning old"):
+    for file in tqdm(
+        (
+            file
+            for file in OUTPUT_DIR.iterdir()
+            if file.is_file() and file.suffix in {".pdf", ".png"}
+        ),
+        desc="Cleaning old",
+    ):
         file.unlink()
     for num, card in enumerate(
         tqdm(generated_deck, desc="Making cards", total=len(list_of_images)), start=1
     ):
         cards.append(card[0])
-        thread = threading.Thread(target=save_image, args=(card[0], OUTPUT_DIR / f"{num}.png"))
+        thread = threading.Thread(
+            target=save_image, args=(card[0], OUTPUT_DIR / f"{num}.png")
+        )
         thread.start()
         threads.append(thread)
     for thread in tqdm(threads, desc="Saving cards", total=len(threads)):
