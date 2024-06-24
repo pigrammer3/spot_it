@@ -1,5 +1,7 @@
-images/*.png
-output/*.png
+images/*
+!images/README.md
+output/*
+!output/README.md
 __pycache__
 .mypy_cache
 *.profile

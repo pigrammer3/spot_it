@@ -3,8 +3,7 @@
 import functools
 import random
 import typing
-from glob import iglob
-from os.path import abspath, join
+from pathlib import Path
 from typing import Iterable, TypeVar
 
 from PIL import Image
@@ -18,14 +17,13 @@ def create_mapping(seq1: Iterable[T], seq2: Iterable[S]) -> dict[T, S]:
     return dict(zip(seq1, seq2))
 
 
-def get_images(directory: str) -> list[Image.Image]:
+def get_images(directory: Path) -> list[Image.Image]:
     """
     Return a list of all PNGs in a directory.
     """
     images = []
-    directory = abspath(directory)
-    for file in iglob("*.png", root_dir=directory):
-        images.append(Image.open(join(directory, file)).convert("RGBA"))
+    for file in directory.glob("*.png", case_sensitive=False):
+        images.append(Image.open(file).convert("RGBA"))
     return images
 
 
